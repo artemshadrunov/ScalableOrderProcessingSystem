@@ -1,0 +1,1740 @@
+openapi: 3.0.3
+info:
+  title: Digital Marketplace API (Combined)
+  description: |
+    Объединённая OpenAPI-спецификация для всех модулей системы: каталог, корзина, заказы, пользователи, доставка, платежи, склад.
+  version: 1.0.0
+
+tags:
+  - name: Products
+    description: Операции с товарами
+  - name: Stock
+    description: Операции со складом и резервами
+  - name: Orders
+    description: Операции с заказами
+  - name: Cart
+    description: Операции с корзиной
+  - name: Delivery
+    description: Операции с доставкой
+  - name: Users
+    description: Операции с пользователями
+  - name: Payments
+    description: Операции с платежами
+
+paths:
+  /products:
+    post:
+      summary: Создать новый товар
+      tags: [Products]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProduct'
+      responses:
+        '201':
+          description: Товар создан
+    get:
+      summary: Получить список товаров
+      operationId: getProducts
+      tags: [Products]
+      description: |
+        Возвращает список товаров с поддержкой паджинации, фильтрации и сортировки.
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: Количество товаров на странице
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Смещение для паджинации
+        - name: min_price
+          in: query
+          schema:
+            type: integer
+          description: Минимальная цена в центах
+        - name: max_price
+          in: query
+          schema:
+            type: integer
+          description: Максимальная цена в центах
+        - name: in_stock
+          in: query
+          schema:
+            type: boolean
+          description: Только товары в наличии
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [price_asc, price_desc, popularity, date_added, name]
+            default: popularity
+          description: Поле для сортировки
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Поиск по названию и описанию
+      responses:
+        '200':
+          description: Список товаров
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductSummary'
+                  total:
+                    type: integer
+                    description: Общее количество товаров
+                  has_more:
+                    type: boolean
+                    description: Есть ли ещё товары
+  /products/{sku}:
+    get:
+      summary: Получить детальную информацию о товаре
+      operationId: getProduct
+      tags: [Products]
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+          description: SKU товара
+      responses:
+        '200':
+          description: Детальная информация о товаре
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Обновить описание или изображения товара
+      operationId: patchProduct
+      tags: [Products]
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+          description: SKU товара
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProduct'
+      responses:
+        '200':
+          description: Товар обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /stock:
+    get:
+      summary: Получить список товаров на складе
+      operationId: getStock
+      tags: [Stock]
+      description: |
+        Возвращает список товаров на складе с их количеством и доступностью.
+        Клиенты используют этот endpoint для добавления товаров в корзину.
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: Количество товаров на странице
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Смещение для паджинации
+        - name: in_stock
+          in: query
+          schema:
+            type: boolean
+          description: Только товары в наличии
+        - name: min_quantity
+          in: query
+          schema:
+            type: integer
+          description: Минимальное количество на складе
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [quantity_asc, quantity_desc, name, sku]
+            default: name
+          description: Поле для сортировки
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Поиск по названию товара или SKU
+      responses:
+        '200':
+          description: Список товаров на складе
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stock_items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StockItem'
+                  total:
+                    type: integer
+                    description: Общее количество товаров на складе
+                  has_more:
+                     type: boolean
+                     description: Есть ли ещё товары
+  /stock/{sku}:
+    get:
+      summary: Получить информацию о товаре на складе
+      operationId: getStockItem
+      tags: [Stock]
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+          description: SKU товара
+      responses:
+        '200':
+          description: Информация о товаре на складе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockItem'
+        '404':
+          description: Товар не найден на складе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Скорректировать количество товара
+      tags: [Stock]
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockAdjustment'
+      responses:
+        '200':
+          description: Количество скорректировано
+  /stock/reserve:
+    post:
+      summary: Взять товар в резерв
+      tags: [Stock]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveRequest'
+      responses:
+        '201':
+          description: Резерв создан
+  /stock/reserve/{reserve_id}:
+    delete:
+      summary: Отпустить резерв (по TTL или вручную)
+      tags: [Stock]
+      parameters:
+        - name: reserve_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Резерв снят
+
+  /orders:
+    post:
+      summary: Создать заказ из корзины
+      operationId: createOrder
+      tags: [Orders]
+      description: |
+        Создаёт заказ из корзины пользователя.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cart_id
+                - user_id
+                - shipping_address
+                - payment_method
+              properties:
+                cart_id:
+                  type: string
+                  format: uuid
+                  description: ID корзины для создания заказа
+                user_id:
+                  type: string
+                  format: uuid
+                  description: ID пользователя
+                shipping_address:
+                  $ref: '#/components/schemas/Address'
+                  description: Адрес доставки
+                payment_method:
+                  $ref: '#/components/schemas/PaymentMethod'
+                  description: Способ оплаты
+      responses:
+        '201':
+          description: Заказ создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Конфликт (недостаточно товара)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /orders/{order_id}:
+    get:
+      summary: Получить информацию о заказе
+      operationId: getOrder
+      tags: [Orders]
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация о заказе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /orders/{order_id}/cancel:
+    post:
+      summary: Отменить заказ
+      operationId: cancelOrder
+      tags: [Orders]
+      description: |
+        Отменяет заказ и возвращает товары на склад.
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Причина отмены
+                  enum: [timeout, payment_failed, user_cancelled, admin_cancelled]
+      responses:
+        '200':
+          description: Заказ отменен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Заказ уже отменен или доставлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /orders/{order_id}/status:
+    put:
+      summary: Обновить статус заказа
+      operationId: updateOrderStatus
+      tags: [Orders]
+      description: |
+        Обновляет статус заказа.
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [pending, paid, cancelled, shipped, delivered, paymentFailed, pendingRefund]
+      responses:
+        '200':
+          description: Статус обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+  /orders/bulk-cancel:
+    post:
+      summary: Массовая отмена заказов
+      operationId: bulkCancelOrders
+      tags: [Orders]
+      description: |
+        Отменяет несколько заказов одновременно.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: Список ID заказов для отмены
+      responses:
+        '200':
+          description: Результат массовой отмены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_processed:
+                    type: integer
+                    description: Общее количество обработанных заказов
+                  cancelled:
+                    type: integer
+                    description: Количество успешно отменённых заказов
+                  failed:
+                    type: integer
+                    description: Количество заказов, которые не удалось отменить
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        order_id:
+                          type: string
+                          format: uuid
+                        status:
+                          type: string
+                          enum: [cancelled, failed]
+                        error:
+                          type: string
+                          description: Описание ошибки (если status = failed)
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /cart:
+    post:
+      summary: Создать новую корзину
+      operationId: createCart
+      tags: [Cart]
+      description: |
+        Создаёт новую корзину для пользователя.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+                  description: ID пользователя
+      responses:
+        '201':
+          description: Корзина создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Корзина уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      summary: Получить корзину пользователя
+      operationId: getCart
+      tags: [Cart]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Корзина пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '404':
+          description: Корзина не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /cart/{cart_id}/items:
+    get:
+      summary: Получить товары в корзине
+      operationId: getCartItems
+      tags: [Cart]
+      parameters:
+        - name: cart_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Список товаров в корзине
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CartItem'
+    post:
+      summary: Добавить товар в корзину
+      operationId: addToCart
+      tags: [Cart]
+      description: |
+        Добавляет товар в корзину.
+      parameters:
+        - name: cart_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sku
+                - quantity
+              properties:
+                sku:
+                  type: string
+                  description: SKU товара
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: Количество товара
+      responses:
+        '200':
+          description: Товар добавлен в корзину
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItem'
+        '400':
+          description: Недостаточно товара на складе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /cart/{cart_id}/items/{sku}:
+    patch:
+      summary: Обновить количество товара в корзине
+      operationId: updateCartItem
+      tags: [Cart]
+      parameters:
+        - name: cart_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 0
+      responses:
+        '200':
+          description: Количество обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItem'
+    delete:
+      summary: Удалить товар из корзины
+      operationId: removeFromCart
+      tags: [Cart]
+      description: |
+        Удаляет товар из корзины и освобождает резерв на складе.
+      parameters:
+        - name: cart_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Товар удален из корзины
+  /cart/{cart_id}/checkout:
+    post:
+      summary: Проверить доступность товаров в корзине (чекаут)
+      operationId: checkoutCart
+      tags: [Cart]
+      description: |
+        Проверяет, что все товары в корзине доступны в нужном количестве.
+      parameters:
+        - name: cart_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Все товары доступны
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                    description: Все ли товары доступны
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sku:
+                          type: string
+                        requested:
+                          type: integer
+                        available:
+                          type: integer
+                        status:
+                          type: string
+                          enum: [ok, not_enough, not_found]
+                        message:
+                          type: string
+        '409':
+          description: Есть недоступные товары
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                    example: false
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sku:
+                          type: string
+                        requested:
+                          type: integer
+                        available:
+                          type: integer
+                        status:
+                          type: string
+                          enum: [not_enough, not_found]
+                        message:
+                          type: string
+  /orders/{order_id}/delivery:
+    get:
+      summary: Получить информацию о доставке
+      operationId: getDeliveryInfo
+      tags: [Delivery]
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация о доставке
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+        '404':
+          description: Информация о доставке не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Создать доставку для заказа
+      operationId: createDelivery
+      tags: [Delivery]
+      description: |
+        Создаёт новую запись о доставке для заказа.
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shipping_address:
+                  $ref: '#/components/schemas/Address'
+                estimated_delivery:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Доставка создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+        '409':
+          description: Доставка уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /orders/{order_id}/delivery/status:
+    put:
+      summary: Обновить статус доставки
+      operationId: updateDeliveryStatus
+      tags: [Delivery]
+      description: |
+        Обновляет статус доставки
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [created, preparing, ready_for_pickup, in_transit, delivered]
+                notes:
+                  type: string
+                  description: Заметки сотрудника
+                estimated_delivery:
+                  type: string
+                  format: date-time
+                  description: Ожидаемое время доставки
+      responses:
+        '200':
+          description: Статус доставки обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+  /delivery/orders:
+    get:
+      summary: Получить список заказов для доставки
+      operationId: getDeliveryOrders
+      tags: [Delivery]
+      description: |
+        Получает список заказов для обработки отделом доставки.
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [created, preparing, ready_for_pickup, in_transit]
+          description: Фильтр по статусу
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Список заказов для доставки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeliveryOrder'
+                  total:
+                    type: integer
+                  has_more:
+                    type: boolean
+  /delivery/orders/{order_id}/history:
+    get:
+      summary: Получить историю статусов доставки
+      operationId: getDeliveryHistory
+      tags: [Delivery]
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: История статусов доставки
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeliveryEvent'
+  /users:
+    post:
+      summary: Создать аккаунт пользователя
+      operationId: createUser
+      tags: [Users]
+      description: |
+        Создаёт новый аккаунт пользователя.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  description: Имя пользователя
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя
+                phone:
+                  type: string
+                  description: Телефон пользователя
+                password:
+                  type: string
+                  minLength: 8
+                  description: Пароль пользователя
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Пользователь с таким email уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/{user_id}/profile:
+    get:
+      summary: Получить профиль пользователя
+      operationId: getUserProfile
+      tags: [Users]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Профиль пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Обновить профиль пользователя
+      operationId: updateUserProfile
+      tags: [Users]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Имя пользователя
+                email:
+                  type: string
+                  format: email
+                  description: Email пользователя
+                phone:
+                  type: string
+                  description: Телефон пользователя
+      responses:
+        '200':
+          description: Профиль обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+  /users/{user_id}/address:
+    get:
+      summary: Получить адрес пользователя
+      operationId: getUserAddress
+      tags: [Users]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Адрес пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+        '404':
+          description: Адрес не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Установить адрес пользователя
+      operationId: setUserAddress
+      tags: [Users]
+      description: |
+        Устанавливает адрес пользователя (заменяет существующий).
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+      responses:
+        '200':
+          description: Адрес установлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+  /users/{user_id}/payment-methods:
+    get:
+      summary: Получить платежные методы пользователя
+      operationId: getUserPaymentMethods
+      tags: [Users]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Список платежных методов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPaymentMethod'
+    post:
+      summary: Добавить платежный метод
+      operationId: addUserPaymentMethod
+      tags: [Users]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - token
+                - provider
+              properties:
+                type:
+                  type: string
+                  enum: [card, paypal]
+                token:
+                  type: string
+                  description: Токен платежного метода
+                provider:
+                  type: string
+                  enum: [stripe, paypal]
+                is_default:
+                  type: boolean
+                  default: false
+                  description: Сделать методом по умолчанию
+      responses:
+        '201':
+          description: Платежный метод добавлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPaymentMethod'
+  /users/{user_id}/payment-methods/{type}:
+    get:
+      summary: Получить конкретный платежный метод
+      operationId: getUserPaymentMethod
+      tags: [Users]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Платежный метод
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPaymentMethod'
+        '404':
+          description: Платежный метод не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/{user_id}/payment-methods/{type}/{method_id}:
+    delete:
+      summary: Удалить платежный метод
+      operationId: deleteUserPaymentMethod
+      tags: [Users]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: method_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Платежный метод удален
+  /payments:
+    post:
+      summary: Инициировать платеж
+      operationId: initiatePayment
+      tags: [Payments]
+      description: |
+        Инициирует платеж для заказа.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order_id
+                - amount_cents
+                - payment_method
+              properties:
+                order_id:
+                  type: string
+                  format: uuid
+                  description: ID заказа для оплаты
+                amount_cents:
+                  type: integer
+                  minimum: 1
+                  description: Сумма платежа в центах
+                payment_method:
+                  $ref: '#/components/schemas/PaymentMethod'
+                  description: Способ оплаты
+      responses:
+        '201':
+          description: Платеж инициирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Платеж уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /payments/{payment_id}:
+    get:
+      summary: Получить статус платежа
+      operationId: getPayment
+      tags: [Payments]
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Статус платежа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          description: Платеж не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /payments/{payment_id}/refund:
+    post:
+      summary: Возврат платежа
+      operationId: refundPayment
+      tags: [Payments]
+      description: |
+        Выполняет возврат платежа.
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount_cents:
+                  type: integer
+                  description: Сумма возврата в центах (если не указана - полный возврат)
+                reason:
+                  type: string
+                  description: Причина возврата
+      responses:
+        '200':
+          description: Возврат выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Возврат невозможен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /webhooks/payment:
+    post:
+      summary: Webhook для платежных систем
+      operationId: paymentWebhook
+      tags: [Payments]
+      description: |
+        Обрабатывает webhook'и от платежных провайдеров.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event_type
+                - payment_id
+              properties:
+                event_type:
+                  type: string
+                  enum: [payment.succeeded, payment.failed, payment.refunded]
+                  description: Тип события
+                payment_id:
+                  type: string
+                  description: ID платежа в системе провайдера
+                amount_cents:
+                  type: integer
+                  description: Сумма платежа в центах
+                metadata:
+                  type: object
+                  description: Дополнительные данные
+                signature:
+                  type: string
+                  description: Подпись webhook'а для верификации
+      responses:
+        '200':
+          description: Webhook обработан
+        '400':
+          description: Неверный формат webhook
+        '401':
+          description: Неверная подпись webhook'а
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ProductSummary:
+      type: object
+      properties:
+        sku:
+          type: string
+          description: SKU товара
+        name:
+          type: string
+          description: Название товара
+        price_cents:
+          type: integer
+          description: Цена в центах
+        image_url:
+          type: string
+          format: uri
+          description: URL изображения товара
+        in_stock:
+          type: boolean
+          description: Есть ли товар в наличии
+        stock_quantity:
+          type: integer
+          description: Количество на складе
+    Product:
+      type: object
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          description: Подробное описание товара
+        price_cents:
+          type: integer
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: Список URL изображений
+        in_stock:
+          type: boolean
+        stock_quantity:
+          type: integer
+    NewProduct:
+      type: object
+      required:
+        - sku
+        - name
+        - price_cents
+        - stock_quantity
+      properties:
+        sku:
+          type: string
+          description: SKU товара
+        name:
+          type: string
+          description: Название товара
+        description:
+          type: string
+          description: Подробное описание товара
+        price_cents:
+          type: integer
+          description: Цена в центах
+        stock_quantity:
+          type: integer
+          description: Начальное количество на складе
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: Список URL изображений товара (загруженных в S3)
+    UpdateProduct:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Новое описание товара
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: Новый список URL изображений товара (загруженных в S3)
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+          description: Сообщение об ошибке
+    StockItem:
+      type: object
+      properties:
+        sku:
+          type: string
+          description: SKU товара
+        name:
+          type: string
+          description: Название товара
+        quantity:
+          type: integer
+          description: Количество на складе
+        reserved_quantity:
+          type: integer
+          description: Количество в резерве
+        available_quantity:
+          type: integer
+          description: Доступное количество (quantity - reserved_quantity)
+        price_cents:
+          type: integer
+          description: Цена в центах
+        image_url:
+          type: string
+          format: uri
+          description: URL изображения товара
+        in_stock:
+          type: boolean
+          description: Есть ли товар в наличии
+        low_stock:
+          type: boolean
+          description: Низкий остаток (меньше 10 единиц)
+        last_updated:
+          type: string
+          format: date-time
+          description: Время последнего обновления
+    ReserveRequest:
+      type: object
+      required: [order_id, sku, qty]
+      properties:
+        order_id:
+          type: string
+        sku:
+          type: string
+        qty:
+          type: integer
+    StockAdjustment:
+      type: object
+      required: [delta]
+      properties:
+        delta:
+          type: integer
+          description: "Положительное — поступление, отрицательное — отгрузка"
+    Order:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        cart_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, paid, cancelled, shipped, delivered, paymentFailed, pendingRefund]
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              sku:
+                type: string
+              name:
+                type: string
+              quantity:
+                type: integer
+              price:
+                type: integer
+        total:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        postal_code:
+          type: string
+        country:
+          type: string
+    PaymentMethod:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [card, paypal]
+        token:
+          type: string
+        provider:
+          type: string
+          enum: [stripe, paypal]
+    Cart:
+      type: object
+      properties:
+        cart_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+    CartItem:
+      type: object
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: integer
+    Delivery:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [created, preparing, ready_for_pickup, in_transit, delivered, cancelled]
+        shipping_address:
+          $ref: '#/components/schemas/Address'
+        estimated_delivery:
+          type: string
+          format: date-time
+          description: Ожидаемое время доставки
+        actual_delivery:
+          type: string
+          format: date-time
+          description: Фактическое время доставки
+        notes:
+          type: string
+          description: Заметки сотрудников
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    DeliveryOrder:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [created, preparing, ready_for_pickup, in_transit, delivered, cancelled]
+        customer_name:
+          type: string
+        shipping_address:
+          $ref: '#/components/schemas/Address'
+        items_count:
+          type: integer
+          description: Количество позиций в заказе
+        priority:
+          type: string
+          enum: [low, normal, high, urgent]
+          description: Приоритет доставки
+        created_at:
+          type: string
+          format: date-time
+        estimated_delivery:
+          type: string
+          format: date-time
+    DeliveryEvent:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [created, preparing, ready_for_pickup, in_transit, delivered, cancelled]
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    UserPaymentMethod:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [card, paypal]
+        provider:
+          type: string
+          enum: [stripe, paypal]
+        is_default:
+          type: boolean
+        last_four:
+          type: string
+          description: Последние 4 цифры карты
+    Payment:
+      type: object
+      properties:
+        payment_id:
+          type: string
+          format: uuid
+        order_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [initiated, captured, failed, refunded]
+        amount_cents:
+          type: integer
+          description: Сумма платежа в центах
+        provider:
+          type: string
+          enum: [stripe, paypal]
+          description: Платежный провайдер
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          description: Дополнительные данные платежа
+    PaymentMethodInfo:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [card, paypal]
+        provider:
+          type: string
+          enum: [stripe, paypal]
+        name:
+          type: string
+          description: Название способа оплаты
+        description:
+          type: string
+          description: Описание способа оплаты
+        icon_url:
+          type: string
+          format: uri
+          description: URL иконки способа оплаты
+        supported_currencies:
+          type: array
+          items:
+            type: string
+          description: Поддерживаемые валюты
