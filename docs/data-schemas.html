@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Data Schemas - ER Diagrams</title>
+    <title>Complete System Schema - ER Diagram</title>
     <script type="module">
       import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
       mermaid.initialize({ startOnLoad: true });
@@ -39,168 +39,8 @@
     </style>
   </head>
   <body>
-    <h1>🗄️ Data Schemas - ER Diagrams</h1>
+    <h1>🗄️ Complete System Schema - ER Diagram</h1>
     
-    <div class="diagram-block">
-      <h2>👤 Users Schema (DynamoDB)</h2>
-      <div class="description">
-        <strong>DynamoDB Structure:</strong> User entity with nested Address and Payment methods. Uses composite keys with PK=USER#id and different SK values for different entity types.
-      </div>
-      <pre class="mermaid">
-erDiagram
-    USER {
-        string PK "USER#id"
-        string SK "PROFILE"
-        string name
-        string email
-        string phone
-    }
-    
-    ADDRESS {
-        string PK "USER#id"
-        string SK "ADDRESS#addr_id"
-        string city
-        string zip
-    }
-    
-    PAYMENT {
-        string PK "USER#id"
-        string SK "PAYMENT#provider"
-        string provider
-        string token
-        boolean is_default
-    }
-    
-    USER ||--o{ ADDRESS : has
-    USER ||--o{ PAYMENT : has
-      </pre>
-    </div>
-
-    <div class="diagram-block">
-      <h2>📋 Orders Schema (SQL)</h2>
-      <div class="description">
-        <strong>SQL Structure:</strong> Relational schema with orders, order items, carts, and cart items. Uses foreign keys for relationships.
-      </div>
-      <pre class="mermaid">
-erDiagram
-    ORDERS {
-        uuid order_id PK
-        uuid user_id
-        uuid cart_id FK
-        string status
-        integer total_cents
-        string address
-        timestamp created_at
-        timestamp expires_at
-    }
-    
-    ORDER_ITEMS {
-        uuid order_id FK
-        string sku
-        integer qty
-        integer price_cents
-    }
-    
-    CARTS {
-        uuid cart_id PK
-        uuid user_id
-        timestamp created_at
-    }
-    
-    CART_ITEMS {
-        uuid cart_id FK
-        string sku FK
-        integer qty
-        integer price_cents
-    }
-    
-    ORDERS ||--o{ ORDER_ITEMS : contains
-    CARTS ||--o{ CART_ITEMS : contains
-    CARTS ||--o{ ORDERS : creates
-      </pre>
-    </div>
-
-    <div class="diagram-block">
-      <h2>📦 Stock Schema (SQL)</h2>
-      <div class="description">
-        <strong>SQL Structure:</strong> Products catalog and stock management with quantity tracking and reservations.
-      </div>
-      <pre class="mermaid">
-erDiagram
-    PRODUCTS {
-        string sku PK
-        string name
-        string description
-        integer price_cents
-        timestamp created_at
-    }
-    
-    STOCK {
-        string sku PK,FK
-        integer quantity
-        integer reserved
-    }
-    
-    PRODUCTS ||--|| STOCK : has
-      </pre>
-    </div>
-
-    <div class="diagram-block">
-      <h2>💳 Payments Schema (SQL)</h2>
-      <div class="description">
-        <strong>SQL Structure:</strong> Payment tracking with external provider integration and status management.
-      </div>
-      <pre class="mermaid">
-erDiagram
-    PAYMENTS {
-        uuid payment_id PK
-        uuid order_id FK
-        string status
-        string provider
-        string external_ref
-        timestamp created_at
-    }
-    
-    ORDERS {
-        uuid order_id PK
-        uuid user_id
-        uuid cart_id FK
-        string status
-        integer total_cents
-        string address
-        timestamp created_at
-        timestamp expires_at
-    }
-    
-    ORDERS ||--o{ PAYMENTS : has
-      </pre>
-    </div>
-
-    <div class="diagram-block">
-      <h2>🚚 Delivery Schema (DynamoDB)</h2>
-      <div class="description">
-        <strong>DynamoDB Structure:</strong> Delivery tracking with shipment info and tracking history. Uses composite keys with PK=ORDER#id and different SK values for shipment and tracking events.
-      </div>
-      <pre class="mermaid">
-erDiagram
-    SHIPMENT {
-        string PK "ORDER#order_id"
-        string SK "SHIPMENT"
-        string status
-        object address
-    }
-    
-    TRACKING {
-        string PK "ORDER#order_id"
-        string SK "TRACKING#timestamp"
-        string status
-        timestamp event_time
-    }
-    
-    SHIPMENT ||--o{ TRACKING : tracks
-      </pre>
-    </div>
-
     <div class="diagram-block">
       <h2>🔗 Complete System Schema</h2>
       <div class="description">
@@ -218,13 +58,6 @@ erDiagram
         string address
         timestamp created_at
         timestamp expires_at
-    }
-    
-    ORDER_ITEMS {
-        uuid order_id FK
-        string sku
-        integer qty
-        integer price_cents
     }
     
     CARTS {
@@ -304,13 +137,11 @@ erDiagram
     USER ||--o{ USER_PAYMENT : has
     
     CARTS ||--o{ CART_ITEMS : contains
-    ORDERS ||--o{ ORDER_ITEMS : contains
     ORDERS ||--o{ PAYMENTS : has
     ORDERS ||--|| DELIVERY_SHIPMENT : has
     DELIVERY_SHIPMENT ||--o{ DELIVERY_TRACKING : tracks
     
     PRODUCTS ||--o{ CART_ITEMS : "in cart"
-    PRODUCTS ||--o{ ORDER_ITEMS : "in order"
     PRODUCTS ||--|| STOCK : has
       </pre>
     </div>

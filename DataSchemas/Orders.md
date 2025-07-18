@@ -10,15 +10,6 @@ CREATE TABLE orders (
     expires_at    TIMESTAMP -- используется для TTL
 );
 
--- Позиции заказа
-CREATE TABLE order_items (
-    order_id      UUID REFERENCES orders(order_id),
-    sku           TEXT NOT NULL,
-    qty           INTEGER NOT NULL,
-    price_cents   INTEGER NOT NULL,
-    PRIMARY KEY (order_id, sku)
-);
-
 -- Корзина пользователя
 CREATE TABLE carts (
     cart_id       UUID PRIMARY KEY,
