@@ -133,10 +133,11 @@ erDiagram
     %% Relationships
     USER ||--o{ CARTS : creates
     USER ||--o{ ORDERS : places
-    USER ||--o{ USER_ADDRESS : has
+    USER ||--|| USER_ADDRESS : has
     USER ||--o{ USER_PAYMENT : has
     
     CARTS ||--o{ CART_ITEMS : contains
+    CARTS ||--o{ ORDERS : creates
     ORDERS ||--o{ PAYMENTS : has
     ORDERS ||--|| DELIVERY_SHIPMENT : has
     DELIVERY_SHIPMENT ||--o{ DELIVERY_TRACKING : tracks
