@@ -38,13 +38,11 @@
       }
     </style>
   </head>
-  <body>
-    <h1>🗄️ Complete System Schema - ER Diagram</h1>
-    
+  <body>    
     <div class="diagram-block">
       <h2>🔗 Complete System Schema</h2>
       <div class="description">
-        <strong>Overview:</strong> Complete system showing relationships between all major entities across SQL and DynamoDB systems.
+        <strong>Overview:</strong> Relationships between all major entities across AuroraDB and DynamoDB.
       </div>
       <pre class="mermaid">
 erDiagram
@@ -137,10 +135,10 @@ erDiagram
     USER ||--o{ USER_PAYMENT : has
     
     CARTS ||--o{ CART_ITEMS : contains
-    CARTS ||--o{ ORDERS : creates
-    ORDERS ||--o{ PAYMENTS : has
+    CARTS ||--|| ORDERS : creates
+    ORDERS ||--|| PAYMENTS : has
     ORDERS ||--|| DELIVERY_SHIPMENT : has
-    DELIVERY_SHIPMENT ||--o{ DELIVERY_TRACKING : tracks
+    DELIVERY_SHIPMENT ||--|| DELIVERY_TRACKING : tracks
     
     PRODUCTS ||--o{ CART_ITEMS : "in cart"
     PRODUCTS ||--|| STOCK : has
