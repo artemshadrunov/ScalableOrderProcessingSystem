@@ -13,12 +13,3 @@ CREATE TABLE stock (
     quantity      INTEGER NOT NULL,         -- всего доступно
     reserved      INTEGER NOT NULL DEFAULT 0 -- временно зарезервировано
 );
-
--- Резервы: контроль TTL и "кому чего"
-CREATE TABLE stock_reserve (
-    reserve_id    UUID PRIMARY KEY,
-    sku           TEXT NOT NULL REFERENCES stock(sku),
-    order_id      UUID NOT NULL REFERENCES orders(order_id),
-    qty           INTEGER NOT NULL,
-    expires_at    TIMESTAMP NOT NULL
-);
