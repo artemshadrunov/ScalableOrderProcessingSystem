@@ -98,5 +98,5 @@ Serverless выбран за относительно небольшие нак�
 
 ### 👉 [Драфт API](https://artemshadrunov.github.io/ScalableOrderProcessingSystem/api.html)
 
-### 👉 [Sequence диаграммы для менее критичных частей системы](https://artemshadrunov.github.io/ScalableOrderProcessingSystem/api.html)
+### 👉 [Sequence диаграммы для менее критичных частей системы](https://artemshadrunov.github.io/ScalableOrderProcessingSystem/diagrams.html)
 
