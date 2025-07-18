@@ -2,7 +2,9 @@
 
 ## Архитектура и обоснование решений
 
-[Диаграмма бизнесс процессов и архитектурная диаграмма](https://miro.com/welcomeonboard/T09WYStlK21EMTVkSEhhY3gvMER6dGxBVWpXMk81SnQvRXQ4Y2x0NXN3YWxOcWRoczlQaWNVWWVUWWpWVXo0M3lkVGUyZDVHNVlzUUkzTGM5TGUycTFkdTYxOEpuRml4QnMzN2lSajZ1YWhyR053OTR1TFlZaG8wQWEvNGNTdlVyVmtkMG5hNDA3dVlncnBvRVB2ZXBnPT0hdjE=?share_link_id=671538498817)
+👉 [Диаграмма бизнесс процессов и архитектурная диаграмма](https://miro.com/welcomeonboard/T09WYStlK21EMTVkSEhhY3gvMER6dGxBVWpXMk81SnQvRXQ4Y2x0NXN3YWxOcWRoczlQaWNVWWVUWWpWVXo0M3lkVGUyZDVHNVlzUUkzTGM5TGUycTFkdTYxOEpuRml4QnMzN2lSajZ1YWhyR053OTR1TFlZaG8wQWEvNGNTdlVyVmtkMG5hNDA3dVlncnBvRVB2ZXBnPT0hdjE=?share_link_id=671538498817)
+
+👉 [Драфт API](https://artemshadrunov.github.io/ScalableOrderProcessingSystem/)
 
 Система состоит из пяти ключевых бизнесовых модулей:
 
@@ -82,7 +84,7 @@ Serverless выбран за относительно небольшие нак�
 - **Отказоустойчивость**: События сохраняются в EventBridge с retry политиками
 - **Гибкость**: Позже легче выделять модули в отдельные сервисы
 
-## Навигация
+## Документация
 
 ### 📊 [Стратегия масштабирования](Scaling.md)
 
@@ -98,4 +100,3 @@ Serverless выбран за относительно небольшие нак�
 
 ### 📄 [OpenAPI спецификация](openapi.yaml)
 
-Для удобного просмотра также доступна [Swagger UI](openapi.html), который загружает спецификацию из `openapi.yaml`.
