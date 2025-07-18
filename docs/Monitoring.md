@@ -15,6 +15,7 @@
 - **Duration**: Время выполнения
 - **Errors**: Количество ошибок
 - **ConcurrentExecutions**: Одновременные выполнения
+- **ColdStarts**: Количество холодных стартов
 
 #### DynamoDB
 - **ConsumedReadCapacityUnits**: Потребленные RCU

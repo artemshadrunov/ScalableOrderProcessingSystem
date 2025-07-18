@@ -31,19 +31,6 @@
 - Отслеживание статуса заказов и доставки
 - История заказов
 
-#### Дополнительные функции
-- Избранные товары
-- Уведомления о статусе заказов
-- Обратная связь и поддержка
-- Офлайн-режим для просмотра каталога
-
-### Архитектура клиента
-- **State Management**: Redux Toolkit или Zustand
-- **API Client**: Axios с interceptors для токенов
-- **Caching**: React Query для кэширования данных
-- **Offline Support**: Service Workers для PWA
-- **Analytics**: Google Analytics или Mixpanel
-
 ## 2. Складской клиент (Warehouse Portal)
 
 ### Целевая аудитория

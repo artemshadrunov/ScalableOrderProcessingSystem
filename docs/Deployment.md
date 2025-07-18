@@ -25,14 +25,6 @@
 * **Persistence** (DynamoDB / Aurora) не версионируется; изменения схемы проходят миграциями
 * Клиент **vN** работает **только** с API **vN**
 
-### Что версионируется
-
-| Компонент                      | Пример имени для v2 |
-| API Gateway                    | `api-v2.example.com`|
-| Lambda-функции                 | `order-handler-v2`  |
-| EventBridge                    | `orders-events-v2`  |
-| SNS (при новом контракте)      | `order-topic-v2`    |
-
 ### Процесс релиза
 
 #### Patch-релиз

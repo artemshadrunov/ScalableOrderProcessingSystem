@@ -23,12 +23,6 @@
 - **IP-based rate limiting** для защиты от брутфорс атак
 - **User-based rate limiting** для предотвращения злоупотреблений
 
-### Защита от инъекций
-- **Parameterized queries** для всех SQL запросов
-- **DynamoDB Expression Attributes** для безопасных запросов
-- **Input sanitization** для всех пользовательских данных
-- **Content Security Policy** для веб-клиентов
-
 ## Безопасность инфраструктуры
 
 ### Управление секретами
