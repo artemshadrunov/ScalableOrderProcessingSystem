@@ -1,4 +1,4 @@
-using Implementation.Core;
+using Implementation.Services;
 using Implementation.Models;
 
 namespace Implementation.Lambda
@@ -142,7 +142,7 @@ namespace Implementation.Lambda
                 await _stockService.ReleaseStockBulk(stockToRelease);
                 // Удаляем заказы через сервис
                 await _orderService.DeleteOrdersBulk(orders.Select(o => o.OrderId).ToList());
-                
+
                 result.ProcessedOrders = orders.Count;
                 result.ReleasedStockItems = stockToRelease.Count;
                 result.Success = true;

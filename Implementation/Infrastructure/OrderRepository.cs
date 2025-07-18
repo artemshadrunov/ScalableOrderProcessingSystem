@@ -52,4 +52,15 @@ public class OrderRepository
         await _dbContext.Database.ExecuteSqlRawAsync(
             $"DELETE FROM orders WHERE order_id IN ({orderIdsString})");
     }
+
+    public async Task<Order?> GetByIdAsync(string orderId)
+    {
+        return await _dbContext.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.OrderId == orderId);
+    }
+
+    public async Task UpdateAsync(Order order)
+    {
+        _dbContext.Orders.Update(order);
+        await _dbContext.SaveChangesAsync();
+    }
 } 

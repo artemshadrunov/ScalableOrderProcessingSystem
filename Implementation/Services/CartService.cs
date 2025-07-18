@@ -1,4 +1,4 @@
-namespace Implementation.Core;
+namespace Implementation.Services;
 
 using System.Linq;
 using Implementation.Infrastructure;

@@ -1,10 +1,11 @@
-namespace Implementation.Core;
+namespace Implementation.Services;
 
 using System;
 using Implementation.Infrastructure;
 using Implementation.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Implementation;
 
 public class OrderService
 {
@@ -78,5 +79,22 @@ public class OrderService
     public async Task DeleteOrdersBulk(List<string> orderIds)
     {
         await _orderRepository.DeleteOrdersBulk(orderIds);
+    }
+
+    public async Task UpdateOrderStatusAndPublishAsync(string orderId, string status)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order == null) 
+            throw new Exception("Order not found");
+            
+        order.Status = status;
+        await _orderRepository.UpdateAsync(order);
+
+        // Отправляем событие в EventBridge
+        await EventBridge.PublishAsync(new OrderStatusChangedEvent
+        {
+            OrderId = order.OrderId,
+            Status = status
+        });
     }
 } 

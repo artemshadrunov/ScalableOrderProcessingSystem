@@ -1,4 +1,4 @@
-namespace Implementation.Core;
+namespace Implementation.Services;
 
 using System.Collections.Generic;
 using Implementation.Infrastructure;
@@ -31,7 +31,7 @@ public class StockService
             if (!stockDict.TryGetValue(item.Sku, out var stock) || stock.Quantity - stock.Reserved < item.Qty)
                 return false;
         }
-        
+
         return true;
     }
 } 
