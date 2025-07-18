@@ -1,8 +1,8 @@
 # System Design
 
-[Диаграмма бизнесс процессов и архитектурная диаграмма](https://miro.com/welcomeonboard/T09WYStlK21EMTVkSEhhY3gvMER6dGxBVWpXMk81SnQvRXQ4Y2x0NXN3YWxOcWRoczlQaWNVWWVUWWpWVXo0M3lkVGUyZDVHNVlzUUkzTGM5TGUycTFkdTYxOEpuRml4QnMzN2lSajZ1YWhyR053OTR1TFlZaG8wQWEvNGNTdlVyVmtkMG5hNDA3dVlncnBvRVB2ZXBnPT0hdjE=?share_link_id=671538498817)
-
 ## Архитектура и обоснование решений
+
+[Диаграмма бизнесс процессов и архитектурная диаграмма](https://miro.com/welcomeonboard/T09WYStlK21EMTVkSEhhY3gvMER6dGxBVWpXMk81SnQvRXQ4Y2x0NXN3YWxOcWRoczlQaWNVWWVUWWpWVXo0M3lkVGUyZDVHNVlzUUkzTGM5TGUycTFkdTYxOEpuRml4QnMzN2lSajZ1YWhyR053OTR1TFlZaG8wQWEvNGNTdlVyVmtkMG5hNDA3dVlncnBvRVB2ZXBnPT0hdjE=?share_link_id=671538498817)
 
 Система состоит из пяти ключевых бизнесовых модулей:
 
