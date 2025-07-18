@@ -98,5 +98,7 @@ Serverless выбран за относительно небольшие нак�
 
 ### 👉 [Драфт API](https://artemshadrunov.github.io/ScalableOrderProcessingSystem/api.html)
 
+### 👉 [Имплементация наиболее критичных частей системы(создание заказа + резерв, очистка просроченных заказов)](https://github.com/artemshadrunov/ScalableOrderProcessingSystem/tree/master/Implementation)
+
 ### 👉 [Sequence диаграммы для менее критичных частей системы](https://artemshadrunov.github.io/ScalableOrderProcessingSystem/diagrams.html)
 

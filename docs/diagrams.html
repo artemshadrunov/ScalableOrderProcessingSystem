@@ -34,5 +34,224 @@
   <body>
     <h1>📈 Sequence Diagrams</h1>
     
+    <div class="diagram-block">
+      <h2>🛒 Add to Cart</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    participant U as "User"
+    participant API as "API Gateway"
+    participant Cart as "Cart Service"
+
+    U->>API: POST /cart/{cart_id}/items (sku, quantity)
+    API->>Cart: addToCart(cart_id, sku, quantity)
+    Cart-->>API: OK / Error
+    API-->>U: OK / Error
+      </pre>
+    </div>
+
+    <div class="diagram-block">
+      <h2>🗑️ Remove from Cart</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    participant U as "User"
+    participant API as "API Gateway"
+    participant Cart as "Cart Service"
+
+    U->>API: DELETE /cart/{cart_id}/items/{sku}
+    API->>Cart: removeFromCart(cart_id, sku)
+    Cart-->>API: OK
+    API-->>U: OK
+      </pre>
+    </div>
+
+    <div class="diagram-block">
+      <h2>📋 Create Order</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    participant U as "User"
+    participant API as "API Gateway"
+    participant Cart as "Cart Service"
+    participant Stock as "Stock Service"
+    participant Orders as "Order Service"
+
+    U->>API: POST /cart/{cart_id}/checkout
+    API->>Cart: getCartItems(cart_id)
+    Cart-->>API: items
+    API->>Stock: checkAvailability(items)
+    Stock-->>API: OK / Error
+    API-->>U: OK / Error
+
+    U->>API: POST /orders (cart_id, user_id, shipping_address, payment_method)
+    API->>Cart: getCartItems(cart_id)
+    Cart-->>API: items
+    API->>Stock: checkAndReserve(items)
+    Stock-->>API: OK / Error
+    API->>Orders: createOrder(user_id, cart_id, items, shipping_address, payment_method)
+    Orders-->>API: order_id
+    API-->>U: order_id / Error
+      </pre>
+    </div>
+
+    <div class="diagram-block">
+      <h2>❌ Cancel Order</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    participant U as "User"
+    participant API as "API Gateway"
+    participant Orders as "Order Service"
+    participant AuroraDB as "Aurora DB"
+    participant DynamoDB as "DynamoDB"
+    participant Payments as "Payment Service"
+    participant Stock as "Stock Service"
+    participant EventBridge as "EventBridge"
+    participant EventHandler as "Event Handler Lambda"
+    participant SNS as "SNS"
+    participant Stripe as "Stripe"
+    participant Warehouse as "Warehouse Portal"
+
+    U->>API: POST /orders/{order_id}/cancel (reason: user_cancelled)
+    API->>Orders: cancelOrder(order_id, reason)
+    Orders->>AuroraDB: getOrder(order_id)
+    AuroraDB-->>Orders: order_data (status: paid)
+    Orders->>AuroraDB: updateOrderStatus(order_id, status: cancelled)
+    Orders->>DynamoDB: updateDeliveryStatus(order_id, status: cancelled)
+    Orders->>EventBridge: OrderCancelled(order_id, reason)
+    EventBridge->>EventHandler: OrderCancelled event
+
+    Orders-->>API: 200 OK (cancelled)
+    API-->>U: 200 OK (order cancelled) 
+    
+    par Refund Process
+        EventHandler->>Payments: POST /payments/{payment_id}/refund
+        Payments->>Stripe: processRefund(payment_id)
+        Stripe-->>Payments: refund_confirmed
+        Payments-->>EventHandler: 200 OK (refund_id)
+    and Stock Notification
+        EventHandler->>Stock: releaseReservation(order_id)
+        Stock->>AuroraDB: updateStockQuantity(order_items)
+        AuroraDB-->>Stock: updated_quantities
+        Stock-->>EventHandler: 200 OK
+        EventHandler->>SNS: OrderCancelled event
+        SNS->>Warehouse: notifyOrderCancelled(order_id, items)
+    end
+      </pre>
+    </div>
+
+    <div class="diagram-block">
+      <h2>💳 Payment Success</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    participant UI
+    participant PaymentsAPI
+    participant OrdersAPI
+    participant EventBridge
+    participant EventHandlerLambda
+    participant DeliveryAPI
+
+    UI->>PaymentsAPI: POST /payments (инициировать платёж)
+    PaymentsAPI-->>UI: 201 Created (payment_id)
+    UI->>PaymentsAPI: Webhook/payment.succeeded (от платёжного провайдера)
+    PaymentsAPI->>OrdersAPI: PUT /orders/{order_id}/status (status: confirmed)
+    OrdersAPI-->>PaymentsAPI: 200 OK
+    OrdersAPI->>EventBridge: OrderStatusChanged (confirmed)
+    EventBridge->>EventHandlerLambda: (OrderStatusChanged: confirmed)
+    EventHandlerLambda->>DeliveryAPI: POST /orders/{order_id}/delivery (status: created)
+      </pre>
+    </div>
+
+    <div class="diagram-block">
+      <h2>💳 Payment Failed</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    participant UI
+    participant PaymentsAPI
+    participant OrdersAPI
+    participant EventBridge
+    participant EventHandlerLambda
+
+    UI->>PaymentsAPI: POST /payments (инициировать платёж)
+    PaymentsAPI-->>UI: 201 Created (payment_id)
+    UI->>PaymentsAPI: Webhook/payment.failed (от платёжного провайдера)
+    PaymentsAPI->>OrdersAPI: PUT /orders/{order_id}/status (status: payment_failed)
+    OrdersAPI-->>PaymentsAPI: 200 OK
+    OrdersAPI->>EventBridge: OrderStatusChanged (payment_failed)
+    EventBridge->>EventHandlerLambda: (OrderStatusChanged: payment_failed)
+    EventBridge->>UI: Показывает ошибку/уведомление пользователю
+      </pre>
+    </div>
+
+    <div class="diagram-block">
+      <h2>🚚 Delivery Flow</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    participant Stripe as "Stripe"
+    participant API as "API Gateway"
+    participant Payments as "Payment Service"
+    participant Orders as "Order Service"
+    participant EventBridge as "EventBridge"
+    participant EventHandler as "Event Handler Lambda"
+    participant Delivery as "Delivery Service"
+    participant DB as "DynamoDB"
+    participant SNS as "SNS"
+    participant Warehouse as "Warehouse Client"
+
+    Stripe->>API: Webhook /webhooks/payment (payment.succeeded)
+    API->>Payments: processPaymentWebhook(webhookData)
+    Payments->>Orders: PUT /orders/{order_id}/status (status: paid)
+    Orders-->>Payments: 200 OK
+    Orders->>EventBridge: OrderStatusChanged(order_id, status: paid)
+    EventBridge->>EventHandler: OrderStatusChanged event
+    EventHandler->>Delivery: CreateDeliveryOrder(order_id)
+    Delivery->>DB: createDeliveryRecord(order_id, status: created)
+    DB-->>Delivery: delivery_id
+    Delivery-->>EventHandler: 201 Created (delivery_id)
+    EventHandler->>SNS: OrderReadyForDelivery(order_id, delivery_id)
+    SNS->>Warehouse: notifyWarehouse(order_id, delivery_id)
+      </pre>
+    </div>
+
+    <div class="diagram-block">
+      <h2>👤 User Registration</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    participant U as "User"
+    participant API as "API Gateway"
+    participant Users as "User Service"
+    participant DB as "DynamoDB"
+
+    U->>API: POST /users (name, email, password, phone)
+    API->>Users: createUser(name, email, password, phone)
+    Users->>DB: checkUserExists(email)
+    DB-->>Users: false
+    Users->>DB: createUser(userData)
+    DB-->>Users: user_id
+    Users-->>API: 201 Created (user_id)
+    API-->>U: 201 Created (user_id)
+      </pre>
+    </div>
+
+    <div class="diagram-block">
+      <h2>📦 Add Product to Stock</h2>
+      <pre class="mermaid">
+sequenceDiagram
+    participant M as "Manager"
+    participant API as "API Gateway"
+    participant Stock as "Stock Service"
+    participant DB as "Aurora DB"
+    participant S3 as "S3"
+
+    M->>API: POST /products (sku, name, description, price_cents, stock_quantity, images)
+    API->>Stock: createProduct(productData)
+    Stock->>DB: checkProductExists(sku)
+    DB-->>Stock: false
+    Stock->>S3: uploadImages(images)
+    S3-->>Stock: image_urls
+    Stock->>DB: createProduct(sku, name, description, price_cents, stock_quantity, image_urls)
+    DB-->>Stock: product_id
+    Stock-->>API: 201 Created (product_id)
+    API-->>M: 201 Created (product_id)
+      </pre>
+    </div>
+    
   </body>
 </html>
