@@ -4,8 +4,6 @@
 
 👉 [Диаграмма бизнесс процессов и архитектурная диаграмма](https://miro.com/welcomeonboard/T09WYStlK21EMTVkSEhhY3gvMER6dGxBVWpXMk81SnQvRXQ4Y2x0NXN3YWxOcWRoczlQaWNVWWVUWWpWVXo0M3lkVGUyZDVHNVlzUUkzTGM5TGUycTFkdTYxOEpuRml4QnMzN2lSajZ1YWhyR053OTR1TFlZaG8wQWEvNGNTdlVyVmtkMG5hNDA3dVlncnBvRVB2ZXBnPT0hdjE=?share_link_id=671538498817)
 
-👉 [Драфт API](https://artemshadrunov.github.io/ScalableOrderProcessingSystem/)
-
 Система состоит из пяти ключевых бизнесовых модулей:
 
 * **Личный кабинет пользователя** (регистрация, адреса, платёжные средства)
@@ -98,5 +96,5 @@ Serverless выбран за относительно небольшие нак�
 
 ### 🛡️ [Отказоустойчивость и восстановление](FaultTolerance.md)
 
-### 📄 [OpenAPI спецификация](openapi.yaml)
+### 👉 [Драфт API](https://artemshadrunov.github.io/ScalableOrderProcessingSystem/api.html)
 
