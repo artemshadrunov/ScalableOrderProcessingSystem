@@ -1,6 +1,6 @@
 # System Design
 
-### [Какую задачу я решаю](https://github.com/artemshadrunov/ScalableOrderProcessingSystem/blob/master/InitialTask.md)
+# [Какую задачу я решаю](https://github.com/artemshadrunov/ScalableOrderProcessingSystem/blob/master/InitialTask.md)
 
 ## Архитектура и обоснование решений
 
