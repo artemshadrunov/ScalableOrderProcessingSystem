@@ -1,16 +1,19 @@
 using Implementation.Models;
 using Implementation.Infrastructure;
+using Implementation.Infrastructure.Interfaces;
+using Implementation.Services.Interfaces;
 using System;
 using System.Threading.Tasks;
 using Implementation;
 
 namespace Implementation.Services
 {
-    public class PaymentService
+    public class PaymentService : IPaymentService
     {
-        private readonly PaymentRepository _paymentRepository;
-        private readonly OrderService _orderService;
-        public PaymentService(PaymentRepository paymentRepository, OrderService orderService)
+        private readonly IPaymentRepository _paymentRepository;
+        private readonly IOrderService _orderService;
+        
+        public PaymentService(IPaymentRepository paymentRepository, IOrderService orderService)
         {
             _paymentRepository = paymentRepository;
             _orderService = orderService;

@@ -1,14 +1,14 @@
-namespace Implementation
+namespace Implementation.EventBridge
 {
     public class OrderStatusChangedEvent
     {
-        public string OrderId { get; set; }
-        public string Status { get; set; }
+        public string OrderId { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
     }
 
-    public static class EventBridge
+    public class EventPublisher : Interfaces.IEventPublisher
     {
-        public static Task PublishAsync(OrderStatusChangedEvent evt)
+        public Task PublishAsync<T>(T eventData) where T : class
         {
             // Здесь отправка события в AWS EventBridge
             return Task.CompletedTask;

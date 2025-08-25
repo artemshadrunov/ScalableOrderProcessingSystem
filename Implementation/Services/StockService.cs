@@ -2,22 +2,24 @@ namespace Implementation.Services;
 
 using System.Collections.Generic;
 using Implementation.Infrastructure;
+using Implementation.Infrastructure.Interfaces;
 using Implementation.Models;
+using Implementation.Services.Interfaces;
 using System.Threading.Tasks;
 using System.Linq;
 
-public class StockService
+public class StockService : IStockService
 {
-    private readonly StockRepository _stockRepository;
+    private readonly IStockRepository _stockRepository;
     
-    public StockService(StockRepository stockRepository)
+    public StockService(IStockRepository stockRepository)
     {
         _stockRepository = stockRepository;
     }
 
-    public async Task ReleaseStockBulk(Dictionary<string, int> stockToRelease)
+    public async Task ReleaseStockBulkAsync(Dictionary<string, int> stockToRelease)
     {
-        await _stockRepository.ChangeStocks(stockToRelease);
+        await _stockRepository.ChangeStocksAsync(stockToRelease);
     }
 
     public async Task<bool> CheckAvailability(List<CartItem> items)
